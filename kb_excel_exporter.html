@@ -1,0 +1,3571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Knowledge Building Excel Exporter</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f7fb;
+  color: #263238;
+}
+
+.header {
+  background: #263238;
+  color: white;
+  padding: 20px 30px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 27px;
+}
+
+.header p {
+  margin: 5px 0 0;
+  opacity: 0.8;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+.panel {
+  background: white;
+  border-radius: 14px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+h2 {
+  margin-top: 0;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 7px;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cfd8dc;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.primary {
+  background: #1976d2;
+  color: white;
+}
+
+.primary:hover {
+  background: #1565c0;
+}
+
+.secondary {
+  background: #eceff1;
+  color: #263238;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.status {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f1f5f9;
+}
+
+.success {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.error {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.info {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.activity-info {
+  padding: 15px;
+  border-radius: 10px;
+  background: #f5f7fa;
+  margin-top: 15px;
+}
+
+.activity-info div {
+  margin: 5px 0;
+}
+
+.legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
+.legend-item {
+  padding: 7px 11px;
+  border-radius: 7px;
+  font-weight: bold;
+}
+
+.original {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.addon {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.disagree {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.question {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.consolidation {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<div class="header">
+
+  <h1>
+    ☁️ Knowledge Building Excel Exporter
+  </h1>
+
+  <p>
+    Export each group's Knowledge Building cloud into a formatted Excel workbook.
+  </p>
+
+</div>
+
+
+<div class="container">
+
+
+  <!-- =====================================================
+       LOGIN
+       ===================================================== -->
+
+  <div
+    id="loginPanel"
+    class="panel">
+
+    <h2>
+      👨‍🏫 Teacher Login
+    </h2>
+
+    <p>
+      Sign in using the same teacher Supabase account
+      used by the Knowledge Building Teacher Dashboard.
+    </p>
+
+    <label>
+      Email
+    </label>
+
+    <input
+      id="emailInput"
+      type="email"
+      placeholder="Teacher email"
+    >
+
+    <label>
+      Password
+    </label>
+
+    <input
+      id="passwordInput"
+      type="password"
+      placeholder="Password"
+    >
+
+    <button
+      id="loginButton"
+      class="primary">
+
+      LOGIN
+
+    </button>
+
+    <div
+      id="loginMessage"
+      class="status hidden">
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       EXPORTER
+       ===================================================== -->
+
+  <div
+    id="exportPanel"
+    class="hidden">
+
+
+    <!-- Teacher -->
+    <div class="panel">
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:15px;
+      ">
+
+        <div>
+
+          <h2 style="margin-bottom:5px;">
+            📊 Knowledge Building Export
+          </h2>
+
+          <div id="teacherEmail"></div>
+
+        </div>
+
+        <button
+          id="logoutButton"
+          class="secondary">
+
+          LOG OUT
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- Activity -->
+    <div class="panel">
+
+      <h2>
+        1. Select Activity
+      </h2>
+
+      <label>
+        Activity
+      </label>
+
+      <select id="activitySelect">
+
+        <option value="">
+          Loading activities...
+        </option>
+
+      </select>
+
+
+      <div
+        id="activityInfo"
+        class="activity-info hidden">
+      </div>
+
+    </div>
+
+
+
+    <!-- Format -->
+    <div class="panel">
+
+      <h2>
+        2. Excel Format
+      </h2>
+
+      <p>
+        Each group becomes a separate worksheet.
+        Student columns are wide and response rows are compact
+        so that the whole Knowledge Building cloud is easier to view.
+      </p>
+
+
+      <div class="legend">
+
+        <div class="legend-item original">
+          🔵 Original Idea
+        </div>
+
+        <div class="legend-item addon">
+          🟢 + Add On
+        </div>
+
+        <div class="legend-item disagree">
+          🔴 − Disagree
+        </div>
+
+        <div class="legend-item question">
+          🟡 ? Question
+        </div>
+
+        <div class="legend-item consolidation">
+          🟣 Consolidation
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- Export -->
+    <div class="panel">
+
+      <h2>
+        3. Export
+      </h2>
+
+      <p>
+        This export only reads information from Supabase.
+        It does not change or delete anything.
+      </p>
+
+      <button
+        id="exportButton"
+        class="primary"
+        disabled>
+
+        📥 EXPORT TO EXCEL
+
+      </button>
+
+
+      <div
+        id="exportMessage"
+        class="status hidden">
+      </div>
+
+    </div>
+
+
+  </div>
+
+</div>
+
+
+
+<script>
+
+
+/* ============================================================
+   SUPABASE CONFIGURATION
+   ============================================================
+
+   Replace these two values with the SAME values
+   from your existing Teacher HTML.
+
+   DO NOT use a service-role key.
+   ============================================================ */
+
+const SUPABASE_URL =
+  "https://tvbndbuxdyaavshrtuez.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_nR1py6IsW4DkpgG2ByEsLA_WbStN0Ps";
+
+
+/* ============================================================
+   SUPABASE CLIENT
+   ============================================================ */
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+
+/* ============================================================
+   DOM
+   ============================================================ */
+
+const loginPanel =
+  document.getElementById(
+    "loginPanel"
+  );
+
+const exportPanel =
+  document.getElementById(
+    "exportPanel"
+  );
+
+const emailInput =
+  document.getElementById(
+    "emailInput"
+  );
+
+const passwordInput =
+  document.getElementById(
+    "passwordInput"
+  );
+
+const loginButton =
+  document.getElementById(
+    "loginButton"
+  );
+
+const loginMessage =
+  document.getElementById(
+    "loginMessage"
+  );
+
+const logoutButton =
+  document.getElementById(
+    "logoutButton"
+  );
+
+const teacherEmail =
+  document.getElementById(
+    "teacherEmail"
+  );
+
+const activitySelect =
+  document.getElementById(
+    "activitySelect"
+  );
+
+const activityInfo =
+  document.getElementById(
+    "activityInfo"
+  );
+
+const exportButton =
+  document.getElementById(
+    "exportButton"
+  );
+
+const exportMessage =
+  document.getElementById(
+    "exportMessage"
+  );
+
+
+let currentUser =
+  null;
+
+let currentActivity =
+  null;
+
+
+/* ============================================================
+   MESSAGE HELPERS
+   ============================================================ */
+
+function showMessage(
+  element,
+  message,
+  type = "info"
+) {
+
+  element.textContent =
+    message;
+
+  element.className =
+    "status " + type;
+
+  element.classList.remove(
+    "hidden"
+  );
+
+}
+
+
+function hideMessage(
+  element
+) {
+
+  element.classList.add(
+    "hidden"
+  );
+
+}
+
+
+/* ============================================================
+   WORKSHEET NAME HELPERS
+   ============================================================ */
+
+function escapeWorksheetName(
+  name
+) {
+
+  let result =
+    String(
+      name || "Group"
+    )
+      .replace(
+        /[\\\/\?\*\[\]\:]/g,
+        ""
+      )
+      .trim();
+
+  if (!result) {
+
+    result =
+      "Group";
+
+  }
+
+  return result.substring(
+    0,
+    31
+  );
+
+}
+
+
+function uniqueWorksheetName(
+  baseName,
+  usedNames
+) {
+
+  let name =
+    escapeWorksheetName(
+      baseName
+    );
+
+  const original =
+    name;
+
+  let counter =
+    2;
+
+
+  while (
+    usedNames.has(
+      name.toLowerCase()
+    )
+  ) {
+
+    const suffix =
+      " " + counter;
+
+    name =
+      original.substring(
+        0,
+        31 - suffix.length
+      ) +
+      suffix;
+
+    counter++;
+
+  }
+
+
+  usedNames.add(
+    name.toLowerCase()
+  );
+
+
+  return name;
+
+}
+
+
+/* ============================================================
+   STUDENT HELPERS
+   ============================================================ */
+
+function getStudentName(
+  studentId,
+  studentMap
+) {
+
+  return (
+    studentMap.get(
+      studentId
+    ) ||
+    "Unknown student"
+  );
+
+}
+
+
+function getIdeaContent(
+  idea
+) {
+
+  if (
+    idea &&
+    typeof idea.content ===
+      "string" &&
+    idea.content.trim()
+  ) {
+
+    return idea.content.trim();
+
+  }
+
+
+  if (
+    idea &&
+    typeof idea.draft_content ===
+      "string" &&
+    idea.draft_content.trim()
+  ) {
+
+    return idea.draft_content.trim();
+
+  }
+
+
+  return "";
+
+}
+
+
+function getResponseContent(
+  response
+) {
+
+  if (
+    response &&
+    typeof response.content ===
+      "string" &&
+    response.content.trim()
+  ) {
+
+    return response.content.trim();
+
+  }
+
+
+  if (
+    response &&
+    typeof response.draft_content ===
+      "string" &&
+    response.draft_content.trim()
+  ) {
+
+    return response.draft_content.trim();
+
+  }
+
+
+  return "";
+
+}
+
+
+/* ============================================================
+   RESPONSE LABEL
+   ============================================================ */
+
+function getInstructionLabel(
+  instruction
+) {
+
+  if (
+    instruction === "+"
+  ) {
+
+    return "+ ADD ON";
+
+  }
+
+
+  if (
+    instruction === "-"
+  ) {
+
+    return "− DISAGREE";
+
+  }
+
+
+  if (
+    instruction === "?"
+  ) {
+
+    return "? QUESTION";
+
+  }
+
+
+  return (
+    instruction ||
+    "RESPONSE"
+  );
+
+}
+
+
+/* ============================================================
+   CONSOLIDATION
+   ============================================================ */
+
+function getConsolidationContent(
+  row
+) {
+
+  if (!row) {
+
+    return "";
+
+  }
+
+
+  const possibleFields = [
+    "content",
+    "consolidation",
+    "text",
+    "summary",
+    "final_content"
+  ];
+
+
+  for (
+    const field of
+    possibleFields
+  ) {
+
+    if (
+      typeof row[field] ===
+        "string" &&
+      row[field].trim()
+    ) {
+
+      return row[field].trim();
+
+    }
+
+  }
+
+
+  return "";
+
+}
+
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+
+async function login() {
+
+  const email =
+    emailInput.value.trim();
+
+  const password =
+    passwordInput.value;
+
+
+  if (
+    !email ||
+    !password
+  ) {
+
+    showMessage(
+      loginMessage,
+      "Please enter your email and password.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  loginButton.disabled =
+    true;
+
+  loginButton.textContent =
+    "LOGGING IN...";
+
+  hideMessage(
+    loginMessage
+  );
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .auth
+        .signInWithPassword({
+
+          email,
+
+          password
+
+        });
+
+
+    if (error) {
+
+      throw error;
+
+    }
+
+
+    currentUser =
+      data.user;
+
+
+    teacherEmail.textContent =
+      currentUser.email ||
+      "";
+
+
+    loginPanel.classList.add(
+      "hidden"
+    );
+
+    exportPanel.classList.remove(
+      "hidden"
+    );
+
+
+    await loadActivities();
+
+
+  }
+  catch (error) {
+
+    console.error(
+      "Login error:",
+      error
+    );
+
+
+    showMessage(
+      loginMessage,
+      "Login failed: " +
+      error.message,
+      "error"
+    );
+
+  }
+  finally {
+
+    loginButton.disabled =
+      false;
+
+    loginButton.textContent =
+      "LOGIN";
+
+  }
+
+}
+
+
+/* ============================================================
+   LOGOUT
+   ============================================================ */
+
+async function logout() {
+
+  await supabaseClient
+    .auth
+    .signOut();
+
+
+  currentUser =
+    null;
+
+  currentActivity =
+    null;
+
+
+  exportPanel.classList.add(
+    "hidden"
+  );
+
+  loginPanel.classList.remove(
+    "hidden"
+  );
+
+
+  emailInput.value =
+    "";
+
+  passwordInput.value =
+    "";
+
+}
+
+
+/* ============================================================
+   LOAD ACTIVITIES
+   ============================================================ */
+
+async function loadActivities() {
+
+  activitySelect.innerHTML =
+    `
+      <option value="">
+        Loading activities...
+      </option>
+    `;
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "kb_sessions"
+      )
+      .select("*")
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
+
+
+  if (error) {
+
+    throw error;
+
+  }
+
+
+  activitySelect.innerHTML =
+    `
+      <option value="">
+        Select an activity...
+      </option>
+    `;
+
+
+  const activities =
+    (data || [])
+      .filter(
+        session => {
+
+          if (
+            session.created_by &&
+            currentUser
+          ) {
+
+            return (
+              session.created_by ===
+              currentUser.id
+            );
+
+          }
+
+          return true;
+
+        }
+      );
+
+
+  activities.forEach(
+    session => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        session.id;
+
+
+      option.textContent =
+        session.name ||
+        session.title ||
+        session.topic ||
+        "Untitled activity";
+
+
+      activitySelect.appendChild(
+        option
+      );
+
+    }
+  );
+
+}
+
+
+/* ============================================================
+   ACTIVITY SELECT
+   ============================================================ */
+
+activitySelect.addEventListener(
+  "change",
+  async function() {
+
+    const sessionId =
+      activitySelect.value;
+
+
+    currentActivity =
+      null;
+
+
+    exportButton.disabled =
+      true;
+
+
+    hideMessage(
+      exportMessage
+    );
+
+
+    if (!sessionId) {
+
+      activityInfo.classList.add(
+        "hidden"
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .from(
+            "kb_sessions"
+          )
+          .select("*")
+          .eq(
+            "id",
+            sessionId
+          )
+          .single();
+
+
+      if (error) {
+
+        throw error;
+
+      }
+
+
+      currentActivity =
+        data;
+
+
+      activityInfo.innerHTML =
+        "";
+
+
+      const activityName =
+        document.createElement(
+          "div"
+        );
+
+
+      activityName.innerHTML =
+        "<strong>Activity:</strong> " +
+        (
+          data.name ||
+          data.title ||
+          "Untitled"
+        );
+
+
+      activityInfo.appendChild(
+        activityName
+      );
+
+
+      if (data.topic) {
+
+        const topic =
+          document.createElement(
+            "div"
+          );
+
+
+        topic.innerHTML =
+          "<strong>Topic:</strong> " +
+          data.topic;
+
+
+        activityInfo.appendChild(
+          topic
+        );
+
+      }
+
+
+      if (data.question) {
+
+        const question =
+          document.createElement(
+            "div"
+          );
+
+
+        question.innerHTML =
+          "<strong>Question:</strong> " +
+          data.question;
+
+
+        activityInfo.appendChild(
+          question
+        );
+
+      }
+
+
+      if (data.join_code) {
+
+        const code =
+          document.createElement(
+            "div"
+          );
+
+
+        code.innerHTML =
+          "<strong>Join Code:</strong> " +
+          data.join_code;
+
+
+        activityInfo.appendChild(
+          code
+        );
+
+      }
+
+
+      activityInfo.classList.remove(
+        "hidden"
+      );
+
+
+      exportButton.disabled =
+        false;
+
+    }
+    catch (error) {
+
+      console.error(
+        error
+      );
+
+
+      showMessage(
+        exportMessage,
+        "Could not load activity: " +
+        error.message,
+        "error"
+      );
+
+    }
+
+  }
+);
+
+
+/* ============================================================
+   FETCH ALL ACTIVITY DATA
+   ============================================================ */
+
+async function fetchActivityData(
+  sessionId
+) {
+
+
+  /* ----------------------------------------------------------
+     GROUP SESSIONS
+     ---------------------------------------------------------- */
+
+  const {
+    data: groupSessions,
+    error: groupSessionError
+  } =
+    await supabaseClient
+      .from(
+        "kb_group_sessions"
+      )
+      .select("*")
+      .eq(
+        "session_id",
+        sessionId
+      );
+
+
+  if (
+    groupSessionError
+  ) {
+
+    throw groupSessionError;
+
+  }
+
+
+  const groupIds =
+    (groupSessions || [])
+      .map(
+        row =>
+          row.group_id
+      )
+      .filter(Boolean);
+
+
+  /* ----------------------------------------------------------
+     GROUPS
+     ---------------------------------------------------------- */
+
+  let groups =
+    [];
+
+
+  if (
+    groupIds.length > 0
+  ) {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "kb_groups"
+        )
+        .select("*")
+        .in(
+          "id",
+          groupIds
+        );
+
+
+    if (error) {
+
+      throw error;
+
+    }
+
+
+    groups =
+      data || [];
+
+  }
+
+
+  /* ----------------------------------------------------------
+     GROUP MEMBERS
+     ---------------------------------------------------------- */
+
+  let members =
+    [];
+
+
+  if (
+    groupIds.length > 0
+  ) {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "kb_group_members"
+        )
+        .select("*")
+        .eq(
+          "session_id",
+          sessionId
+        )
+        .in(
+          "group_id",
+          groupIds
+        )
+        .order(
+          "position",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (error) {
+
+      throw error;
+
+    }
+
+
+    members =
+      data || [];
+
+  }
+
+
+  /* ----------------------------------------------------------
+     STUDENTS
+     ---------------------------------------------------------- */
+
+  const studentIds =
+    members
+      .map(
+        member =>
+          member.student_id
+      )
+      .filter(Boolean);
+
+
+  let students =
+    [];
+
+
+  if (
+    studentIds.length > 0
+  ) {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "kb_students"
+        )
+        .select("*")
+        .in(
+          "id",
+          studentIds
+        );
+
+
+    if (error) {
+
+      throw error;
+
+    }
+
+
+    students =
+      data || [];
+
+  }
+
+
+  /* ----------------------------------------------------------
+     IDEAS
+     ---------------------------------------------------------- */
+
+  const {
+    data: ideas,
+    error: ideaError
+  } =
+    await supabaseClient
+      .from(
+        "kb_ideas"
+      )
+      .select("*")
+      .eq(
+        "session_id",
+        sessionId
+      );
+
+
+  if (ideaError) {
+
+    throw ideaError;
+
+  }
+
+
+  /* ----------------------------------------------------------
+     ROUNDS
+     ---------------------------------------------------------- */
+
+  const {
+    data: rounds,
+    error: roundError
+  } =
+    await supabaseClient
+      .from(
+        "kb_rounds"
+      )
+      .select("*")
+      .eq(
+        "session_id",
+        sessionId
+      )
+      .order(
+        "round_number",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (roundError) {
+
+    throw roundError;
+
+  }
+
+
+  /* ----------------------------------------------------------
+     ASSIGNMENTS
+     ---------------------------------------------------------- */
+
+  const {
+    data: assignments,
+    error: assignmentError
+  } =
+    await supabaseClient
+      .from(
+        "kb_assignments"
+      )
+      .select("*")
+      .eq(
+        "session_id",
+        sessionId
+      );
+
+
+  if (assignmentError) {
+
+    throw assignmentError;
+
+  }
+
+
+  /* ----------------------------------------------------------
+     RESPONSES
+     ---------------------------------------------------------- */
+
+  const {
+    data: responses,
+    error: responseError
+  } =
+    await supabaseClient
+      .from(
+        "kb_responses"
+      )
+      .select("*")
+      .eq(
+        "session_id",
+        sessionId
+      );
+
+
+  if (responseError) {
+
+    throw responseError;
+
+  }
+
+
+  /* ----------------------------------------------------------
+     CONSOLIDATIONS
+     ---------------------------------------------------------- */
+
+  let consolidations =
+    [];
+
+
+  const {
+    data: consolidationData,
+    error: consolidationError
+  } =
+    await supabaseClient
+      .from(
+        "kb_consolidations"
+      )
+      .select("*")
+      .eq(
+        "session_id",
+        sessionId
+      );
+
+
+  if (!consolidationError) {
+
+    consolidations =
+      consolidationData || [];
+
+  }
+  else {
+
+    console.warn(
+      "Could not read consolidations:",
+      consolidationError
+    );
+
+  }
+
+
+  /* ----------------------------------------------------------
+     ROUND SKIPS
+     ---------------------------------------------------------- */
+
+  let skips =
+    [];
+
+
+  const {
+    data: skipData,
+    error: skipError
+  } =
+    await supabaseClient
+      .from(
+        "kb_round_skips"
+      )
+      .select("*")
+      .eq(
+        "session_id",
+        sessionId
+      );
+
+
+  if (!skipError) {
+
+    skips =
+      skipData || [];
+
+  }
+
+
+  return {
+
+    groupSessions:
+      groupSessions || [],
+
+    groups,
+
+    members,
+
+    students,
+
+    ideas:
+      ideas || [],
+
+    rounds:
+      rounds || [],
+
+    assignments:
+      assignments || [],
+
+    responses:
+      responses || [],
+
+    consolidations,
+
+    skips
+
+  };
+
+}
+
+
+/* ============================================================
+   ADD RESPONSE CELL
+   ============================================================ */
+
+function addResponseCell(
+  worksheet,
+  rowNumber,
+  columnNumber,
+  response,
+  responderName,
+  roundNumber
+) {
+
+  const instruction =
+    response.instruction_code;
+
+
+  const label =
+    getInstructionLabel(
+      instruction
+    );
+
+
+  const content =
+    getResponseContent(
+      response
+    );
+
+
+  let text =
+    label +
+    "\n" +
+    responderName +
+    " · Round " +
+    (
+      roundNumber ||
+      "—"
+    );
+
+
+  if (content) {
+
+    text +=
+      "\n" +
+      content;
+
+  }
+
+
+  if (!response.submitted_at) {
+
+    text +=
+      "\n[DRAFT / NOT SUBMITTED]";
+
+  }
+
+
+  const cell =
+    worksheet.getCell(
+      rowNumber,
+      columnNumber
+    );
+
+
+  cell.value =
+    text;
+
+
+  cell.alignment = {
+
+    vertical:
+      "top",
+
+    horizontal:
+      "left",
+
+    wrapText:
+      true
+
+  };
+
+
+  cell.border = {
+
+    top: {
+      style:
+        "thin"
+    },
+
+    bottom: {
+      style:
+        "thin"
+    },
+
+    left: {
+      style:
+        "thin"
+    },
+
+    right: {
+      style:
+        "thin"
+    }
+
+  };
+
+
+  /* ----------------------------------------------------------
+     RESPONSE COLOURS
+     ---------------------------------------------------------- */
+
+  if (
+    instruction === "+"
+  ) {
+
+    cell.fill = {
+
+      type:
+        "pattern",
+
+      pattern:
+        "solid",
+
+      fgColor: {
+
+        argb:
+          "DCFCE7"
+
+      }
+
+    };
+
+  }
+
+
+  else if (
+    instruction === "-"
+  ) {
+
+    cell.fill = {
+
+      type:
+        "pattern",
+
+      pattern:
+        "solid",
+
+      fgColor: {
+
+        argb:
+          "FEE2E2"
+
+      }
+
+    };
+
+  }
+
+
+  else if (
+    instruction === "?"
+  ) {
+
+    cell.fill = {
+
+      type:
+        "pattern",
+
+      pattern:
+        "solid",
+
+      fgColor: {
+
+        argb:
+          "FEF3C7"
+
+      }
+
+    };
+
+  }
+
+
+  else {
+
+    cell.fill = {
+
+      type:
+        "pattern",
+
+      pattern:
+        "solid",
+
+      fgColor: {
+
+        argb:
+          "F1F5F9"
+
+      }
+
+    };
+
+  }
+
+
+  cell.font = {
+
+    size:
+      10
+
+  };
+
+}
+
+
+/* ============================================================
+   CREATE GROUP WORKSHEET
+   ============================================================ */
+
+function createGroupWorksheet(
+  workbook,
+  group,
+  studentMap,
+  ideas,
+  rounds,
+  assignments,
+  responses,
+  consolidationRows,
+  activity
+) {
+
+
+  const worksheet =
+    workbook.addWorksheet(
+      group.sheetName
+    );
+
+
+  const studentCount =
+    group.members.length;
+
+
+  const totalColumns =
+    Math.max(
+      studentCount,
+      1
+    );
+
+
+  /* ----------------------------------------------------------
+     COLUMN WIDTH
+     ----------------------------------------------------------
+
+     This is the main width control.
+
+     Increase to 45 or 48 if you want even wider cells.
+     ---------------------------------------------------------- */
+
+  for (
+    let column = 1;
+    column <= totalColumns;
+    column++
+  ) {
+
+    worksheet.getColumn(
+      column
+    ).width = 42;
+
+  }
+
+
+  /* ----------------------------------------------------------
+     GROUP TITLE
+     ---------------------------------------------------------- */
+
+  worksheet.mergeCells(
+    1,
+    1,
+    1,
+    totalColumns
+  );
+
+
+  const titleCell =
+    worksheet.getCell(
+      1,
+      1
+    );
+
+
+  titleCell.value =
+    group.name;
+
+
+  titleCell.font = {
+
+    bold:
+      true,
+
+    size:
+      16
+
+  };
+
+
+  titleCell.alignment = {
+
+    horizontal:
+      "center",
+
+    vertical:
+      "middle"
+
+  };
+
+
+  worksheet.getRow(
+    1
+  ).height = 25;
+
+
+  /* ----------------------------------------------------------
+     TOPIC / QUESTION
+     ---------------------------------------------------------- */
+
+  worksheet.mergeCells(
+    2,
+    1,
+    2,
+    totalColumns
+  );
+
+
+  const topicCell =
+    worksheet.getCell(
+      2,
+      1
+    );
+
+
+  let topicText =
+    activity.topic ||
+    activity.question ||
+    "Knowledge Building";
+
+
+  topicCell.value =
+    "Topic / Question: " +
+    topicText;
+
+
+  topicCell.font = {
+
+    bold:
+      true,
+
+    size:
+      11
+
+  };
+
+
+  topicCell.alignment = {
+
+    horizontal:
+      "center",
+
+    vertical:
+      "middle",
+
+    wrapText:
+      true
+
+  };
+
+
+  topicCell.fill = {
+
+    type:
+      "pattern",
+
+    pattern:
+      "solid",
+
+    fgColor: {
+
+      argb:
+        "E3F2FD"
+
+    }
+
+  };
+
+
+  topicCell.border = {
+
+    top: {
+      style:
+        "thin"
+    },
+
+    bottom: {
+      style:
+        "thin"
+    },
+
+    left: {
+      style:
+        "thin"
+    },
+
+    right: {
+      style:
+        "thin"
+    }
+
+  };
+
+
+  worksheet.getRow(
+    2
+  ).height = 38;
+
+
+  /* ----------------------------------------------------------
+     STUDENT NAME ROW
+     ---------------------------------------------------------- */
+
+  const studentRow =
+    4;
+
+
+  const ideaRow =
+    5;
+
+
+  group.members.forEach(
+    (member, index) => {
+
+      const column =
+        index + 1;
+
+
+      const studentName =
+        getStudentName(
+          member.student_id,
+          studentMap
+        );
+
+
+      const nameCell =
+        worksheet.getCell(
+          studentRow,
+          column
+        );
+
+
+      nameCell.value =
+        studentName;
+
+
+      nameCell.font = {
+
+        bold:
+          true,
+
+        size:
+          11
+
+      };
+
+
+      nameCell.alignment = {
+
+        horizontal:
+          "center",
+
+        vertical:
+          "middle",
+
+        wrapText:
+          true
+
+      };
+
+
+      nameCell.fill = {
+
+        type:
+          "pattern",
+
+        pattern:
+          "solid",
+
+        fgColor: {
+
+          argb:
+            "DBEAFE"
+
+        }
+
+      };
+
+
+      nameCell.border = {
+
+        top: {
+          style:
+            "thin"
+        },
+
+        bottom: {
+          style:
+            "thin"
+        },
+
+        left: {
+          style:
+            "thin"
+        },
+
+        right: {
+          style:
+            "thin"
+        }
+
+      };
+
+
+      /* ------------------------------------------------------
+         ORIGINAL IDEA
+         ------------------------------------------------------ */
+
+      const idea =
+        ideas.find(
+          item =>
+
+            item.student_id ===
+            member.student_id &&
+
+            item.group_id ===
+            group.id
+
+        );
+
+
+      const ideaCell =
+        worksheet.getCell(
+          ideaRow,
+          column
+        );
+
+
+      ideaCell.value =
+        "🔵 ORIGINAL IDEA\n" +
+        (
+          getIdeaContent(
+            idea
+          ) ||
+          "(No submitted idea)"
+        );
+
+
+      ideaCell.font = {
+
+        size:
+          10
+
+      };
+
+
+      ideaCell.alignment = {
+
+        vertical:
+          "top",
+
+        horizontal:
+          "left",
+
+        wrapText:
+          true
+
+      };
+
+
+      ideaCell.fill = {
+
+        type:
+          "pattern",
+
+        pattern:
+          "solid",
+
+        fgColor: {
+
+          argb:
+            "DBEAFE"
+
+        }
+
+      };
+
+
+      ideaCell.border = {
+
+        top: {
+          style:
+            "thin"
+        },
+
+        bottom: {
+          style:
+            "thin"
+        },
+
+        left: {
+          style:
+            "thin"
+        },
+
+        right: {
+          style:
+            "thin"
+        }
+
+      };
+
+    }
+  );
+
+
+  worksheet.getRow(
+    studentRow
+  ).height = 23;
+
+
+  /* ----------------------------------------------------------
+     ORIGINAL IDEA HEIGHT
+
+     Shorter than previous version.
+     ---------------------------------------------------------- */
+
+  worksheet.getRow(
+    ideaRow
+  ).height = 85;
+
+
+  /* ----------------------------------------------------------
+     RESPONSE SECTIONS
+     ---------------------------------------------------------- */
+
+  const instructionOrder =
+    [
+      "+",
+      "-",
+      "?"
+    ];
+
+
+  let currentRow =
+    7;
+
+
+  instructionOrder.forEach(
+    instruction => {
+
+
+      /* ------------------------------------------------------
+         SECTION HEADER
+         ------------------------------------------------------ */
+
+      worksheet.mergeCells(
+        currentRow,
+        1,
+        currentRow,
+        totalColumns
+      );
+
+
+      const headerCell =
+        worksheet.getCell(
+          currentRow,
+          1
+        );
+
+
+      headerCell.value =
+        getInstructionLabel(
+          instruction
+        );
+
+
+      headerCell.font = {
+
+        bold:
+          true,
+
+        size:
+          11
+
+      };
+
+
+      headerCell.alignment = {
+
+        horizontal:
+          "center",
+
+        vertical:
+          "middle"
+
+      };
+
+
+      if (
+        instruction === "+"
+      ) {
+
+        headerCell.fill = {
+
+          type:
+            "pattern",
+
+          pattern:
+            "solid",
+
+          fgColor: {
+
+            argb:
+              "BBF7D0"
+
+          }
+
+        };
+
+      }
+
+
+      else if (
+        instruction === "-"
+      ) {
+
+        headerCell.fill = {
+
+          type:
+            "pattern",
+
+          pattern:
+            "solid",
+
+          fgColor: {
+
+            argb:
+              "FECACA"
+
+          }
+
+        };
+
+      }
+
+
+      else {
+
+        headerCell.fill = {
+
+          type:
+            "pattern",
+
+          pattern:
+            "solid",
+
+          fgColor: {
+
+            argb:
+              "FDE68A"
+
+          }
+
+        };
+
+      }
+
+
+      worksheet.getRow(
+        currentRow
+      ).height = 22;
+
+
+      currentRow++;
+
+
+      /* ------------------------------------------------------
+         FIND MAX RESPONSES
+         ------------------------------------------------------ */
+
+      const responseCounts =
+        group.members.map(
+          member =>
+
+            assignments.filter(
+              assignment =>
+
+                assignment.group_id ===
+                group.id &&
+
+                assignment.target_student_id ===
+                member.student_id &&
+
+                assignment.instruction_code ===
+                instruction
+
+            ).length
+
+        );
+
+
+      const maxResponses =
+        Math.max(
+          1,
+          ...responseCounts
+        );
+
+
+      /* ------------------------------------------------------
+         RESPONSE ROWS
+         ------------------------------------------------------ */
+
+      for (
+        let responseIndex = 0;
+        responseIndex < maxResponses;
+        responseIndex++
+      ) {
+
+
+        group.members.forEach(
+          (member, index) => {
+
+            const column =
+              index + 1;
+
+
+            const matchingAssignments =
+              assignments
+                .filter(
+                  assignment =>
+
+                    assignment.group_id ===
+                    group.id &&
+
+                    assignment.target_student_id ===
+                    member.student_id &&
+
+                    assignment.instruction_code ===
+                    instruction
+
+                )
+                .sort(
+                  (
+                    a,
+                    b
+                  ) => {
+
+                    const roundA =
+                      rounds.find(
+                        round =>
+                          round.id ===
+                          a.round_id
+                      );
+
+
+                    const roundB =
+                      rounds.find(
+                        round =>
+                          round.id ===
+                          b.round_id
+                      );
+
+
+                    return (
+                      (
+                        roundA?.round_number ||
+                        0
+                      ) -
+                      (
+                        roundB?.round_number ||
+                        0
+                      )
+                    );
+
+                  }
+                );
+
+
+            const assignment =
+              matchingAssignments[
+                responseIndex
+              ];
+
+
+            const cell =
+              worksheet.getCell(
+                currentRow,
+                column
+              );
+
+
+            if (!assignment) {
+
+              cell.value =
+                "";
+
+              cell.border = {
+
+                top: {
+                  style:
+                    "thin"
+                },
+
+                bottom: {
+                  style:
+                    "thin"
+                },
+
+                left: {
+                  style:
+                    "thin"
+                },
+
+                right: {
+                  style:
+                    "thin"
+                }
+
+              };
+
+              return;
+
+            }
+
+
+            const response =
+              responses.find(
+                item =>
+                  item.assignment_id ===
+                  assignment.id
+              );
+
+
+            if (!response) {
+
+              cell.value =
+                "No response submitted.";
+
+              cell.alignment = {
+
+                vertical:
+                  "top",
+
+                wrapText:
+                  true
+
+              };
+
+              return;
+
+            }
+
+
+            const responderName =
+              getStudentName(
+                assignment.responder_student_id,
+                studentMap
+              );
+
+
+            const round =
+              rounds.find(
+                item =>
+                  item.id ===
+                  assignment.round_id
+              );
+
+
+            addResponseCell(
+              worksheet,
+
+              currentRow,
+
+              column,
+
+              {
+                ...response,
+
+                instruction_code:
+                  assignment.instruction_code
+
+              },
+
+              responderName,
+
+              round?.round_number
+
+            );
+
+          }
+        );
+
+
+        /* ----------------------------------------------------
+           COMPACT RESPONSE HEIGHT
+           ---------------------------------------------------- */
+
+        worksheet.getRow(
+          currentRow
+        ).height = 72;
+
+
+        currentRow++;
+
+      }
+
+
+      /*
+        Small gap between sections.
+      */
+
+      currentRow++;
+
+    }
+  );
+
+
+  /* ----------------------------------------------------------
+     CONSOLIDATION
+     ---------------------------------------------------------- */
+
+  currentRow++;
+
+
+  worksheet.mergeCells(
+    currentRow,
+    1,
+    currentRow,
+    totalColumns
+  );
+
+
+  const consolidationHeader =
+    worksheet.getCell(
+      currentRow,
+      1
+    );
+
+
+  consolidationHeader.value =
+    "🟣 CONSOLIDATION";
+
+
+  consolidationHeader.font = {
+
+    bold:
+      true,
+
+    size:
+      13
+
+  };
+
+
+  consolidationHeader.alignment = {
+
+    horizontal:
+      "center",
+
+    vertical:
+      "middle"
+
+  };
+
+
+  consolidationHeader.fill = {
+
+    type:
+      "pattern",
+
+    pattern:
+      "solid",
+
+    fgColor: {
+
+      argb:
+        "DDD6FE"
+
+    }
+
+  };
+
+
+  consolidationHeader.border = {
+
+    top: {
+      style:
+        "thin"
+    },
+
+    bottom: {
+      style:
+        "thin"
+    },
+
+    left: {
+      style:
+        "thin"
+    },
+
+    right: {
+      style:
+        "thin"
+    }
+
+  };
+
+
+  worksheet.getRow(
+    currentRow
+  ).height = 25;
+
+
+  currentRow++;
+
+
+  /* ----------------------------------------------------------
+     CONSOLIDATION CONTENT
+     ---------------------------------------------------------- */
+
+  worksheet.mergeCells(
+    currentRow,
+    1,
+    currentRow + 2,
+    totalColumns
+  );
+
+
+  const consolidationCell =
+    worksheet.getCell(
+      currentRow,
+      1
+    );
+
+
+  const relevantConsolidations =
+    (
+      consolidationRows ||
+      []
+    )
+      .filter(
+        row =>
+          row.group_id ===
+          group.id
+      );
+
+
+  let consolidationText =
+    relevantConsolidations
+      .map(
+        row =>
+          getConsolidationContent(
+            row
+          )
+      )
+      .filter(Boolean)
+      .join(
+        "\n\n"
+      );
+
+
+  if (!consolidationText) {
+
+    consolidationText =
+      "(No consolidation recorded)";
+
+  }
+
+
+  consolidationCell.value =
+    consolidationText;
+
+
+  consolidationCell.font = {
+
+    size:
+      10
+
+  };
+
+
+  consolidationCell.alignment = {
+
+    vertical:
+      "top",
+
+    horizontal:
+      "left",
+
+    wrapText:
+      true
+
+  };
+
+
+  consolidationCell.fill = {
+
+    type:
+      "pattern",
+
+    pattern:
+      "solid",
+
+    fgColor: {
+
+      argb:
+        "EDE9FE"
+
+    }
+
+  };
+
+
+  consolidationCell.border = {
+
+    top: {
+      style:
+        "thin"
+    },
+
+    bottom: {
+      style:
+        "thin"
+    },
+
+    left: {
+      style:
+        "thin"
+    },
+
+    right: {
+      style:
+        "thin"
+    }
+
+  };
+
+
+  worksheet.getRow(
+    currentRow
+  ).height = 45;
+
+  worksheet.getRow(
+    currentRow + 1
+  ).height = 45;
+
+  worksheet.getRow(
+    currentRow + 2
+  ).height = 45;
+
+
+  /* ----------------------------------------------------------
+     FREEZE PANES
+     ---------------------------------------------------------- */
+
+  worksheet.views = [
+
+    {
+
+      state:
+        "frozen",
+
+      ySplit:
+        5
+
+    }
+
+  ];
+
+
+  /* ----------------------------------------------------------
+     PAGE SETUP
+     ---------------------------------------------------------- */
+
+  worksheet.pageSetup = {
+
+    orientation:
+      "landscape",
+
+    fitToPage:
+      true,
+
+    fitToWidth:
+      1,
+
+    fitToHeight:
+      0
+
+  };
+
+
+  return worksheet;
+
+}
+
+
+/* ============================================================
+   CONTENTS SHEET
+   ============================================================ */
+
+function createContentsSheet(
+  workbook,
+  groups,
+  activity
+) {
+
+  const worksheet =
+    workbook.addWorksheet(
+      "Contents"
+    );
+
+
+  worksheet.getColumn(
+    1
+  ).width = 12;
+
+
+  worksheet.getColumn(
+    2
+  ).width = 35;
+
+
+  worksheet.getColumn(
+    3
+  ).width = 25;
+
+
+  /* ----------------------------------------------------------
+     TITLE
+     ---------------------------------------------------------- */
+
+  worksheet.mergeCells(
+    "A1:C1"
+  );
+
+
+  const title =
+    worksheet.getCell(
+      "A1"
+    );
+
+
+  title.value =
+    "☁️ Knowledge Building Export";
+
+
+  title.font = {
+
+    bold:
+      true,
+
+    size:
+      18
+
+  };
+
+
+  title.alignment = {
+
+    horizontal:
+      "center",
+
+    vertical:
+      "middle"
+
+  };
+
+
+  worksheet.getRow(
+    1
+  ).height = 30;
+
+
+  /* ----------------------------------------------------------
+     ACTIVITY
+     ---------------------------------------------------------- */
+
+  worksheet.mergeCells(
+    "A2:C2"
+  );
+
+
+  const activityCell =
+    worksheet.getCell(
+      "A2"
+    );
+
+
+  activityCell.value =
+    activity.name ||
+    activity.title ||
+    "Knowledge Building Activity";
+
+
+  activityCell.font = {
+
+    bold:
+      true,
+
+    size:
+      12
+
+  };
+
+
+  activityCell.alignment = {
+
+    horizontal:
+      "center"
+
+  };
+
+
+  worksheet.getRow(
+    2
+  ).height = 25;
+
+
+  /* ----------------------------------------------------------
+     GROUP TABLE
+     ---------------------------------------------------------- */
+
+  worksheet.getRow(
+    4
+  ).values =
+    [
+      "Group",
+      "Group Name",
+      "Worksheet"
+    ];
+
+
+  worksheet.getRow(
+    4
+  ).font = {
+
+    bold:
+      true
+
+  };
+
+
+  groups.forEach(
+    (group, index) => {
+
+      const row =
+        worksheet.addRow(
+          [
+            index + 1,
+            group.name,
+            group.sheetName
+          ]
+        );
+
+
+      row.eachCell(
+        cell => {
+
+          cell.border = {
+
+            top: {
+              style:
+                "thin"
+            },
+
+            bottom: {
+              style:
+                "thin"
+            },
+
+            left: {
+              style:
+                "thin"
+            },
+
+            right: {
+              style:
+                "thin"
+            }
+
+          };
+
+        }
+      );
+
+    }
+  );
+
+
+  worksheet.freezePanes = {
+
+    ySplit:
+      4
+
+  };
+
+
+  return worksheet;
+
+}
+
+
+/* ============================================================
+   EXPORT TO EXCEL
+   ============================================================ */
+
+async function exportToExcel() {
+
+
+  if (!currentActivity) {
+
+    showMessage(
+      exportMessage,
+      "Please select an activity first.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  exportButton.disabled =
+    true;
+
+
+  exportButton.textContent =
+    "⏳ CREATING EXCEL...";
+
+
+  showMessage(
+    exportMessage,
+    "Reading Knowledge Building data...",
+    "info"
+  );
+
+
+  try {
+
+    const sessionId =
+      currentActivity.id;
+
+
+    const data =
+      await fetchActivityData(
+        sessionId
+      );
+
+
+    showMessage(
+      exportMessage,
+      "Creating worksheets...",
+      "info"
+    );
+
+
+    const workbook =
+      new ExcelJS.Workbook();
+
+
+    workbook.creator =
+      "Knowledge Building Excel Exporter";
+
+
+    workbook.created =
+      new Date();
+
+
+    workbook.modified =
+      new Date();
+
+
+    /* ----------------------------------------------------------
+       STUDENT MAP
+       ---------------------------------------------------------- */
+
+    const studentMap =
+      new Map(
+        data.students.map(
+          student => [
+
+            student.id,
+
+            student.display_name ||
+            student.name ||
+            "Unknown student"
+
+          ]
+        )
+      );
+
+
+    /* ----------------------------------------------------------
+       GROUP OBJECTS
+       ---------------------------------------------------------- */
+
+    const usedSheetNames =
+      new Set([
+        "contents"
+      ]);
+
+
+    const groupObjects =
+      data.groups
+        .map(
+          (group, index) => {
+
+
+            const groupMembers =
+              data.members
+                .filter(
+                  member =>
+                    member.group_id ===
+                    group.id
+                )
+                .sort(
+                  (
+                    a,
+                    b
+                  ) =>
+                    (
+                      a.position ||
+                      0
+                    ) -
+                    (
+                      b.position ||
+                      0
+                    )
+                );
+
+
+            const groupName =
+              group.name ||
+              group.group_name ||
+              (
+                "Group " +
+                (
+                  index + 1
+                )
+              );
+
+
+            const sheetName =
+              uniqueWorksheetName(
+                groupName,
+                usedSheetNames
+              );
+
+
+            return {
+
+              ...group,
+
+              name:
+                groupName,
+
+              sheetName,
+
+              members:
+                groupMembers
+
+            };
+
+          }
+        );
+
+
+    /* ----------------------------------------------------------
+       CONTENTS
+       ---------------------------------------------------------- */
+
+    createContentsSheet(
+      workbook,
+      groupObjects,
+      currentActivity
+    );
+
+
+    /* ----------------------------------------------------------
+       GROUP SHEETS
+       ---------------------------------------------------------- */
+
+    groupObjects.forEach(
+      group => {
+
+        createGroupWorksheet(
+
+          workbook,
+
+          group,
+
+          studentMap,
+
+          data.ideas,
+
+          data.rounds,
+
+          data.assignments,
+
+          data.responses,
+
+          data.consolidations,
+
+          currentActivity
+
+        );
+
+      }
+    );
+
+
+    /* ----------------------------------------------------------
+       FILE NAME
+       ---------------------------------------------------------- */
+
+    let activityName =
+      currentActivity.name ||
+      currentActivity.title ||
+      "Knowledge_Building";
+
+
+    activityName =
+      activityName
+        .replace(
+          /[\\\/:*?"<>|]/g,
+          "_"
+        )
+        .trim();
+
+
+    const fileName =
+      activityName +
+      "_Knowledge_Building.xlsx";
+
+
+    showMessage(
+      exportMessage,
+      "Preparing Excel file...",
+      "info"
+    );
+
+
+    const buffer =
+      await workbook.xlsx.writeBuffer();
+
+
+    const blob =
+      new Blob(
+        [buffer],
+        {
+          type:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        }
+      );
+
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+
+    link.href =
+      url;
+
+
+    link.download =
+      fileName;
+
+
+    document.body.appendChild(
+      link
+    );
+
+
+    link.click();
+
+
+    link.remove();
+
+
+    URL.revokeObjectURL(
+      url
+    );
+
+
+    showMessage(
+      exportMessage,
+      "✓ Excel file created successfully: " +
+      fileName,
+      "success"
+    );
+
+  }
+  catch (error) {
+
+    console.error(
+      "Export error:",
+      error
+    );
+
+
+    showMessage(
+      exportMessage,
+      "Could not export: " +
+      error.message,
+      "error"
+    );
+
+  }
+  finally {
+
+    exportButton.disabled =
+      false;
+
+
+    exportButton.textContent =
+      "📥 EXPORT TO EXCEL";
+
+  }
+
+}
+
+
+/* ============================================================
+   EVENT LISTENERS
+   ============================================================ */
+
+loginButton.addEventListener(
+  "click",
+  login
+);
+
+
+logoutButton.addEventListener(
+  "click",
+  logout
+);
+
+
+exportButton.addEventListener(
+  "click",
+  exportToExcel
+);
+
+
+passwordInput.addEventListener(
+  "keydown",
+  function(event) {
+
+    if (
+      event.key ===
+      "Enter"
+    ) {
+
+      login();
+
+    }
+
+  }
+);
+
+
+/* ============================================================
+   INITIALISE
+   ============================================================ */
+
+async function initialise() {
+
+  try {
+
+    const {
+      data
+    } =
+      await supabaseClient
+        .auth
+        .getSession();
+
+
+    if (
+      data &&
+      data.session &&
+      data.session.user
+    ) {
+
+      currentUser =
+        data.session.user;
+
+
+      teacherEmail.textContent =
+        currentUser.email ||
+        "";
+
+
+      loginPanel.classList.add(
+        "hidden"
+      );
+
+
+      exportPanel.classList.remove(
+        "hidden"
+      );
+
+
+      await loadActivities();
+
+    }
+
+  }
+  catch (error) {
+
+    console.error(
+      "Initialisation error:",
+      error
+    );
+
+  }
+
+}
+
+
+initialise();
+
+</script>
+
+</body>
+</html>
